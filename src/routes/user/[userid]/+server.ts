@@ -1,4 +1,6 @@
 import { json } from '@sveltejs/kit';
+import { User } from '$lib/oldap/classes/user';
+import { createQName, type QName } from '$lib/oldap/types/xsd_qname';
 
 export async function GET({params, request}): Promise<Response> {
 	const { userid } = params;
@@ -14,7 +16,13 @@ export async function GET({params, request}): Promise<Response> {
 		});
 		if (res.ok) {
 			const userdata = await res.json();
-			return json({ success: true, data: userdata }, { status: 200 });
+			const hasperms = userdata.has_permissions.map((s: string) : QName => createQName(s))
+			const user = new User(userdata.userIri,
+				userdata.userId,
+				userdata.family_name,
+				userdata.given_name,
+				hasperms);
+			return json({ success: true, data: user }, { status: 200 });
 		}
 		else {
 			const error = await res.json();
