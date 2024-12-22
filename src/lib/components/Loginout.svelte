@@ -8,6 +8,7 @@
 
 	import { accessinfo } from '$lib/states/accessinfo.js'
 	import { get } from 'svelte/store';
+	import type { JsonUser } from '$lib/oldap/classes/user';
 
 	const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -53,12 +54,11 @@
 				'oldap-token': res.token
 			},
 		});
-		const res2 = await response2.json();
-		if (!res2.success) {
-			//errorMessage = res.errormsg;
-			console.log("ERROR:", res2.errormsg);
-			//return false;
+		if (!response2.ok) {
+			const errmsg = await response2.text();
+			throw Error(errmsg);
 		}
+		const res2 = await response2.json() as JsonUser;
 		console.log("USER:", res2)
 
 		open = false;

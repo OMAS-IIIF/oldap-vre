@@ -1,6 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { User } from '$lib/oldap/classes/user';
-import { createQName, type QName } from '$lib/oldap/types/xsd_qname';
+import type { JsonUser } from '$lib/oldap/classes/user';
 
 export async function GET({params, request}): Promise<Response> {
 	const { userid } = params;
@@ -14,14 +13,10 @@ export async function GET({params, request}): Promise<Response> {
 				'Authorization': 'Bearer ' + token
 			},
 		});
+		return res;
+		/*
 		if (res.ok) {
-			const userdata = await res.json();
-			const hasperms = userdata.has_permissions.map((s: string) : QName => createQName(s))
-			const user = new User(userdata.userIri,
-				userdata.userId,
-				userdata.family_name,
-				userdata.given_name,
-				hasperms);
+			const user = await res.json() as JsonUser;
 			return json({ success: true, data: user }, { status: 200 });
 		}
 		else {
@@ -29,9 +24,11 @@ export async function GET({params, request}): Promise<Response> {
 			const errorMessage = error.message;
 			return json({ success: false, errormsg: errorMessage }, { status: 401 });
 		}
+		 */
 	}
 	catch (error) {
-		console.error('Error getting user imnformation:', error);
-		return json({ success: false, errormsg: 'Error getting user imnformation.' }, { status: 500 });
+		console.error('Error getting user information:', error);
+		const err = error as Error;
+		return new Response(null,new ResponseInit(null, 500, err.message as string));
 	}
 }
