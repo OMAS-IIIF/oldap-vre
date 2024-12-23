@@ -6,17 +6,22 @@
 	import { Icon } from '@smui/fab';
 	import HelperText from '@smui/select/helper-text';
 
-	import { accessinfo } from '$lib/states/accessinfo.js'
-	import { get } from 'svelte/store';
-	import type { JsonUser } from '$lib/oldap/classes/user';
+	import { accessInfoStore } from '$lib/stores/accessinfo.js';
+	import { User } from '$lib/oldap/classes/user';
+	import { JsonConvert, OperationMode, ValueCheckingMode } from 'json2typescript';
 
 	const apiUrl = import.meta.env.VITE_API_URL;
 
-	let open = $state(false);
+	let openLogin = $state(false);
+	let openLogout = $state(false);
 	// let token = $state(token);
 	let oldap_url = $state(apiUrl);
 	let userid = $state('')
 	let password = $state('')
+	let userid_to_show = $state('')
+
+
+	let clicked = $state('Nothing yet.'); // TODO! for build only
 
 	const handleSubmit = async () => {
 		if (!userid || !password) {
@@ -41,10 +46,6 @@
 			return false;
 		}
 		console.log("SUCCESS:", res.token);
-		accessinfo.set({
-			server: oldap_url,
-			token: res.token,
-		});
 
 		const response2 = await fetch('/user/' + userid, {
 			'method': 'GET',
@@ -58,16 +59,41 @@
 			const errmsg = await response2.text();
 			throw Error(errmsg);
 		}
-		const res2 = await response2.json() as JsonUser;
-		console.log("USER:", res2)
+		const res2 = await response2.json();
 
-		open = false;
+		let jsonConvert: JsonConvert = new JsonConvert();
+		jsonConvert.operationMode = OperationMode.LOGGING; // print some debug data
+		jsonConvert.ignorePrimitiveChecks = false; // don't allow assigning number to string etc.
+		jsonConvert.valueCheckingMode = ValueCheckingMode.ALLOW_NULL; // never allow null
+
+		let user: User;
+		try {
+			user = jsonConvert.deserializeObject(res2, User);
+			accessInfoStore.set({
+				server: oldap_url,
+				token: res.token,
+				user: user,
+			})
+			userid_to_show = user.userId
+			console.log("USER:", user)
+		}
+		catch (err) {
+			console.error(err);
+		}
+
+		openLogin = false;
 	};
+
+	function logout() {
+		accessInfoStore.set(null);
+		userid_to_show = '';
+		return true;
+	}
 
 </script>
 
 <Dialog
-	bind:open
+	bind:open={openLogin}
 	aria-labelledby="default-focus-title"
 	aria-describedby="default-focus-content"
 >
@@ -131,4 +157,27 @@
 	</Actions>
 </Dialog>
 
-<IconButton class="material-icons" aria-label="Login" onclick={() => (open = true)}>login</IconButton>
+<Dialog
+	bind:open={openLogout}
+	aria-labelledby="simple-title"
+	aria-describedby="simple-content"
+>
+	<Title id="simple-title">Logout</Title>
+	<Content id="simple-content">Do You really want to logout?</Content>
+	<Actions>
+		<Button onclick={() => {}}>
+			<Label>No</Label>
+		</Button>
+		<Button onclick={() => logout()}>
+			<Label>Yes</Label>
+		</Button>
+	</Actions>
+</Dialog>
+
+
+{#if userid_to_show}
+	<IconButton class="material-icons" aria-label="Logout" onclick={() => (openLogout = true)}>login</IconButton>
+{:else}
+	<IconButton class="material-icons" aria-label="Login" onclick={() => (openLogin = true)}>login</IconButton>
+{/if}
+

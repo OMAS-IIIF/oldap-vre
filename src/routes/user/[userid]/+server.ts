@@ -1,5 +1,3 @@
-import { json } from '@sveltejs/kit';
-import type { JsonUser } from '$lib/oldap/classes/user';
 
 export async function GET({params, request}): Promise<Response> {
 	const { userid } = params;
@@ -14,21 +12,10 @@ export async function GET({params, request}): Promise<Response> {
 			},
 		});
 		return res;
-		/*
-		if (res.ok) {
-			const user = await res.json() as JsonUser;
-			return json({ success: true, data: user }, { status: 200 });
-		}
-		else {
-			const error = await res.json();
-			const errorMessage = error.message;
-			return json({ success: false, errormsg: errorMessage }, { status: 401 });
-		}
-		 */
 	}
 	catch (error) {
 		console.error('Error getting user information:', error);
 		const err = error as Error;
-		return new Response(null,new ResponseInit(null, 500, err.message as string));
+		return new Response(null, {status: 500, statusText: err.message as string});
 	}
 }
