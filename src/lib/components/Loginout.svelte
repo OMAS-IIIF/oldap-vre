@@ -8,7 +8,6 @@
 
 	import { accessInfoStore } from '$lib/stores/accessinfo.js';
 	import { User } from '$lib/oldap/classes/user';
-	import { JsonConvert, OperationMode, ValueCheckingMode } from 'json2typescript';
 
 	const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -61,20 +60,16 @@
 		}
 		const res2 = await response2.json();
 
-		let jsonConvert: JsonConvert = new JsonConvert();
-		jsonConvert.operationMode = OperationMode.LOGGING; // print some debug data
-		jsonConvert.ignorePrimitiveChecks = false; // don't allow assigning number to string etc.
-		jsonConvert.valueCheckingMode = ValueCheckingMode.ALLOW_NULL; // never allow null
 
 		let user: User;
 		try {
-			user = jsonConvert.deserializeObject(res2, User);
+			user = User.fromJson(res2);
 			accessInfoStore.set({
 				server: oldap_url,
 				token: res.token,
 				user: user,
 			})
-			userid_to_show = user.userId
+			userid_to_show = user.userId.toString();
 			console.log("USER:", user)
 		}
 		catch (err) {

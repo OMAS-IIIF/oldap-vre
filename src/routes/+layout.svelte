@@ -4,16 +4,26 @@
 	import IconButton from '@smui/icon-button';
 	import Loginout from '$lib/components/Loginout.svelte';
 	import { type AccessInfo, accessInfoStore } from '$lib/stores/accessinfo';
-	import Select, { Option } from '@smui/select';
-	import { Label } from '@smui/button';
+	import List, { Item, Separator, Text } from '@smui/list';
+	import Button, { Label } from '@smui/button';
+	import Menu from '@smui/menu';
+	import type { InProject } from '$lib/oldap/classes/user';
 
 	let { children } = $props();
 	let accessInfo: AccessInfo | null = $state(null);
+	accessInfoStore.subscribe((value) => {accessInfo = value ? value as AccessInfo : null;});
 
-	accessInfoStore.subscribe((value) => {accessInfo = value})
+	const in_projects: InProject[] = $derived.by(() => {
+		if (accessInfo) {
+			return accessInfo.user?.in_projects;
+		}
+		else {
+			return [];
+		}
+	});
 
-	let fruits = ['Apple', 'Orange', 'Banana', 'Mango'];
-	let value = $state('Orange');
+	let menu: Menu;
+
 </script>
 
 <div class="flexy">
@@ -21,20 +31,31 @@
 		<TopAppBar variant="static">
 			<Row>
 				<Section>
-					<IconButton class="material-icons">home</IconButton>
-					<IconButton class="material-icons">settings</IconButton>
+					<Text>OLDAP</Text>
+					<IconButton class="material-icons" href="/">home</IconButton>
+					<IconButton class="material-icons" href="/admin">settings</IconButton>
 				</Section>
 				<Section align="end">
 					{#if accessInfo}
 						<label class="mdc-typography--body1" for="input-id">User: {accessInfo.user.userId}</label>
 						<div style="width: 20px"> </div>
 						<div>
-							<Select bind:value label="Select Menu">
-								{#each fruits as fruit}
-									<Option value={fruit}>{fruit}</Option>
-								{/each}
-							</Select>
-
+							<Button variant="raised" onclick={() => menu.setOpen(true)}>
+								<Label>Select project</Label>
+							</Button>
+							<Menu bind:this={menu}>
+								<List>
+									{#each in_projects as project}
+										<Item onSMUIAction={() => {}}>
+											<Text>{project.project}</Text>
+										</Item>
+									{/each}
+									<Separator />
+									<Item onSMUIAction={() => {}}>
+										<Text>No project</Text>
+									</Item>
+								</List>
+							</Menu>
 						</div>
 					{/if}
 					<!-- <IconButton class="material-icons" aria-label="Login" onclick={() => alert("LOGIN")}>login</IconButton> -->

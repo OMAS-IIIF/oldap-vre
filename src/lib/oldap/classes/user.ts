@@ -1,41 +1,95 @@
-import { JsonObject, JsonProperty } from 'json2typescript';
+import { NCName } from '$lib/oldap/types/xsd_ncname';
+import { Iri } from '$lib/oldap/types/xsd_iri';
+import type { QName } from '$lib/oldap/types/xsd_qname';
+import { type AdminPermission, stringToAdminPermission } from '$lib/oldap/enums/admin_permissions';
 
-@JsonObject("InProject")
-export class InProject {
-	@JsonProperty("project", String)
-	project: string = "";
 
-	@JsonProperty("permissions", [String])
-	permissions: string[] = [];
+export interface InProject {
+	project: Iri;
+	permissions: AdminPermission[]
 }
 
-@JsonObject("User")
 export class User {
-
-	@JsonProperty("userIri", String)
-	private _userIri: string = "";
-	get userIri() {
-		return this._userIri;
-	}
-
-	@JsonProperty("userId", String)
-	private _userId: string = "";
-	get userId() {
-		return this._userId;
-	}
-
-	@JsonProperty("isActive", Boolean)
-	isActive: boolean = false;
-
-	@JsonProperty("family_name", String)
+	#userIri: Iri;
+	#userId: NCName;
+	isActive?: boolean;
 	familyName?: string;
+	givenName?: string;
+	inProject?: InProject[];
+	hasPermissions?: QName[];
 
-	@JsonProperty("given_name", String)
-	given_name?: string;
+	constructor(userIri: Iri,
+							userId: NCName,
+							isActive?: boolean,
+							familyName?: string,
+							givenName?: string,
+							inProject?: {project: Iri;
+								permissions?: AdminPermission[]}[],
+							hasPermissions?: QName[]) {
+		this.#userIri = userIri;
+		this.#userId = userId;
+		this.isActive = isActive;
+		this.familyName = familyName;
+		this.givenName = givenName;
+		this.inProject = inProject
+		this.hasPermissions = hasPermissions
+	}
 
-	@JsonProperty("has_permissions", [String])
-	has_permissions?: string[];
+	get userIri() {
+		return this.#userIri;
+	}
 
-	@JsonProperty("in_projects", [InProject])
-	in_projects?: InProject[];
+	get userId() {
+		return this.#userId;
+	}
+
+	static fromJson(obj: any): User {
+		let userIri: Iri;
+		let userId: NCName;
+		let isActive: boolean;
+
+
+		if (obj?.userIri !== undefined && typeof obj.userIri === 'string') {
+			userIri = new Iri(obj.userIri);
+		}
+		else {
+			throw new Error(`${obj?.userIri} is not a valid user Iri`);
+		}
+		if (obj?.userId !== undefined && typeof obj.userId === 'string') {
+			userId = new NCName(obj.userId);
+		}
+		else {
+			throw new Error(`${obj?.userId} is not a valid user ID`);
+		}
+		if (obj?.isActive !== undefined && typeof obj.isActive === 'boolean') {
+			isActive = obj?.isActive;
+		}
+		else {
+			throw new Error(`${obj?.isActive} is not a valid Boolean`);
+		}
+		const user = new User(userIri, userId, isActive)
+
+		if (obj?.family_name !== undefined && typeof obj.family_name === 'string') {
+			user.familyName = obj.family_name;
+		}
+		if (obj?.given_name !== undefined && typeof obj.given_name === 'string') {
+			user.givenName = obj.given_name;
+		}
+		if (obj?.in_projects !== undefined) {
+			if (Array.isArray(obj.in_projects)) {
+				const in_projects = obj.in_projects.map((item: {project: string, permissions: string[]}): InProject => {
+					const permissions = item.permissions.map((x) => (stringToAdminPermission(x)))
+					if (permissions === undefined) {
+						throw new Error(`${obj?.in_permissions} is not a valid permission`);
+					}
+					return {
+						project: new Iri(item.project),
+						permissions: permissions as AdminPermission[],
+					}
+				});
+				user.inProject = in_projects;
+			}
+		}
+		return user;
+	}
 }

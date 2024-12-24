@@ -7,3 +7,7 @@ export enum AdminPermission {
 	ADMIN_CREATE = 'oldap:ADMIN_CREATE', // Create new resources in the given project
 	ADMIN_LISTS = 'oldap:ADMIN_LISTS' // Allows to add/modify/delete lists
 }
+
+export function stringToAdminPermission(value: string): AdminPermission | undefined {
+	return Object.values(AdminPermission).find((permission) => permission === value);
+}

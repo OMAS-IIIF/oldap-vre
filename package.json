@@ -64,7 +64,6 @@
 		"vitest": "^2.0.4"
 	},
 	"dependencies": {
-		"json2typescript": "^1.5.1",
 		"svelte-material-ui": "^8.0.0-beta.2"
 	}
 }
