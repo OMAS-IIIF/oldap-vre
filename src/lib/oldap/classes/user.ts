@@ -1,7 +1,7 @@
 import { NCName } from '$lib/oldap/types/xsd_ncname';
 import { Iri } from '$lib/oldap/types/xsd_iri';
 import type { QName } from '$lib/oldap/types/xsd_qname';
-import { type AdminPermission, stringToAdminPermission } from '$lib/oldap/enums/admin_permissions';
+import { AdminPermission, stringToAdminPermission } from '$lib/oldap/enums/admin_permissions';
 
 
 export interface InProject {
@@ -43,11 +43,10 @@ export class User {
 		return this.#userId;
 	}
 
-	static fromJson(obj: any): User {
+	static fromOldapJson(obj: any): User {
 		let userIri: Iri;
 		let userId: NCName;
 		let isActive: boolean;
-
 
 		if (obj?.userIri !== undefined && typeof obj.userIri === 'string') {
 			userIri = new Iri(obj.userIri);
@@ -80,7 +79,7 @@ export class User {
 				const in_projects = obj.in_projects.map((item: {project: string, permissions: string[]}): InProject => {
 					const permissions = item.permissions.map((x) => (stringToAdminPermission(x)))
 					if (permissions === undefined) {
-						throw new Error(`${obj?.in_permissions} is not a valid permission`);
+						throw new Error(`${obj?.in_permissions} is not a valid AdminPermission`);
 					}
 					return {
 						project: new Iri(item.project),
@@ -88,6 +87,14 @@ export class User {
 					}
 				});
 				user.inProject = in_projects;
+			}
+		}
+		if (obj?.has_permissions !== undefined) {
+			if (Array.isArray(obj.has_permissions)) {
+				user.hasPermissions = obj.has_permissions.map((x: string) => (new Iri(x)));
+			}
+			else {
+				throw new Error(`${obj.has_permissions} is not a valid permission`);
 			}
 		}
 		return user;

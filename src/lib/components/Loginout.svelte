@@ -63,7 +63,7 @@
 
 		let user: User;
 		try {
-			user = User.fromJson(res2);
+			user = User.fromOldapJson(res2);
 			accessInfoStore.set({
 				server: oldap_url,
 				token: res.token,

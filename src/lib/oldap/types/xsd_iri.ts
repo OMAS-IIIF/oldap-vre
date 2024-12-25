@@ -27,7 +27,6 @@ export class Iri {
 	constructor(prefix: string, fragment: string);
 	constructor(prefix: NCName, fragment: NCName);
 	constructor(iri?: string | QName | NCName, fragment?: string | NCName) {
-		console.log("===================>", typeof iri, iri);
 		if (iri === undefined) {
 			this.iri = null;
 		}
@@ -41,6 +40,10 @@ export class Iri {
 				const parsed = new URL(iri);
 				this.iri = iri;
 				this.representation = "FULL";
+			}
+			else {
+				this.iri = iri;
+				this.representation = "QNAME";
 			}
 		}
 		else if (iri instanceof QName && fragment === undefined) {

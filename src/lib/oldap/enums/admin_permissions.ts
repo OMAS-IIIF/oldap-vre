@@ -9,5 +9,5 @@ export enum AdminPermission {
 }
 
 export function stringToAdminPermission(value: string): AdminPermission | undefined {
-	return Object.values(AdminPermission).find((permission) => permission === value);
+	return Object.entries(AdminPermission).find(([_, v]) => v === value)?.[1] as AdminPermission | undefined;
 }
