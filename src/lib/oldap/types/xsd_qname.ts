@@ -1,4 +1,5 @@
 import { NCName } from '$lib/oldap/types/xsd_ncname';
+import { OldapErrorInvalidValue } from '$lib/oldap/errors/OldapErrorInvalidValue';
 /*
 export type QName = `${string}:${string}` & { __type: 'QName' };
 
@@ -25,9 +26,26 @@ export class QName {
 	static createQName(qname: string): QName {
 		const parts = qname.split(':')
 		if (parts.length != 2) {
-			throw new Error("Imvalid QName format")
+			throw new OldapErrorInvalidValue(`Invalid QName format: "${qname}"`)
 		}
-		return new QName(new NCName(parts[0]), new NCName(parts[1]));
+		if (parts[0] === 'http' || parts[0] === 'https' || parts[0] === 'urn') {
+			throw new OldapErrorInvalidValue("Invalid QName format: prefix may not be \"http\", \"https\" or \"urn\"")
+		}
+		let p: NCName;
+		try {
+			p = new NCName(parts[0]);
+		}
+		catch (e) {
+			throw new OldapErrorInvalidValue(`Invalid QName format: prefix "${parts[0]}" is invalid: ${e}`)
+		}
+		let f: NCName;
+		try {
+			f = new NCName(parts[1]);
+		}
+		catch (e) {
+			throw new OldapErrorInvalidValue(`Invalid QName format: fragment "${parts[1]}" is invalid: ${e}`)
+		}
+		return new QName(p, f);
 	}
 }
 

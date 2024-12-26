@@ -5,18 +5,6 @@
 import { QName } from '$lib/oldap/types/xsd_qname';
 import { NCName } from '$lib/oldap/types/xsd_ncname';
 
-const iriRegex = /^[a-zA-Z][a-zA-Z0-9+.-]*:[^\s]*$/;
-
-// Factory function to validate and create an IRI
-/*
-export function createIri(value: string): Iri {
-	if (!iriRegex.test(value)) {
-		throw new Error(`Invalid IRI: ${value}`);
-	}
-	return value as Iri;
-}
-*/
-
 export class Iri {
 	iri: string | QName | null = null;
 	representation: "FULL" | "QNAME" | null = null;
@@ -32,9 +20,6 @@ export class Iri {
 		}
 		else if (typeof iri === 'string' && fragment === undefined) {
 			const parts = iri.split(':');
-			if (parts.length != 2) {
-				throw new Error("Invalid IRI format");
-			}
 			if (parts[0] === "http" || parts[0] === "https" || parts[1] === "urn") {
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				const parsed = new URL(iri);
@@ -42,6 +27,9 @@ export class Iri {
 				this.representation = "FULL";
 			}
 			else {
+				if (parts.length != 2) {
+					throw new Error("Invalid IRI format");
+				}
 				this.iri = iri;
 				this.representation = "QNAME";
 			}

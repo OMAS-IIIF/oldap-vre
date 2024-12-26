@@ -1,3 +1,4 @@
+import { OldapErrorInvalidValue } from '$lib/oldap/errors/OldapErrorInvalidValue';
 
 
 export class NCName {
@@ -6,7 +7,7 @@ export class NCName {
 	constructor(ncname?: string) {
 		if (ncname) {
 			if (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(ncname)) {
-				throw new Error('Invalid NCName format: ' + ncname);
+				throw new OldapErrorInvalidValue('Invalid NCName format: ' + ncname);
 			}
 			this.ncname = ncname
 		}
