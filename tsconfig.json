@@ -9,7 +9,9 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
+		"module": "ESNext", // or "NodeNext"
 		"moduleResolution": "bundler",
+		"noUncheckedIndexedAccess": true,
 		"allowArbitraryExtensions": true,
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,

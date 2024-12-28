@@ -2,6 +2,7 @@ import { NCName } from '$lib/oldap/types/xsd_ncname';
 import { Iri } from '$lib/oldap/types/xsd_iri';
 import type { QName } from '$lib/oldap/types/xsd_qname';
 import { AdminPermission, stringToAdminPermission } from '$lib/oldap/enums/admin_permissions';
+import { OldapErrorInvalidValue } from '$lib/oldap/errors/OldapErrorInvalidValue';
 
 
 export interface InProject {
@@ -23,8 +24,7 @@ export class User {
 							isActive?: boolean,
 							familyName?: string,
 							givenName?: string,
-							inProject?: {project: Iri;
-								permissions?: AdminPermission[]}[],
+							inProject?: InProject[],
 							hasPermissions?: QName[]) {
 		this.#userIri = userIri;
 		this.#userId = userId;
@@ -52,19 +52,19 @@ export class User {
 			userIri = new Iri(obj.userIri);
 		}
 		else {
-			throw new Error(`${obj?.userIri} is not a valid user Iri`);
+			throw new OldapErrorInvalidValue(`${obj?.userIri} is not a valid user Iri`);
 		}
 		if (obj?.userId !== undefined && typeof obj.userId === 'string') {
 			userId = new NCName(obj.userId);
 		}
 		else {
-			throw new Error(`${obj?.userId} is not a valid user ID`);
+			throw new OldapErrorInvalidValue(`${obj?.userId} is not a valid user ID`);
 		}
 		if (obj?.isActive !== undefined && typeof obj.isActive === 'boolean') {
 			isActive = obj?.isActive;
 		}
 		else {
-			throw new Error(`${obj?.isActive} is not a valid Boolean`);
+			throw new OldapErrorInvalidValue(`${obj?.isActive} is not a valid Boolean`);
 		}
 		const user = new User(userIri, userId, isActive)
 
@@ -79,7 +79,7 @@ export class User {
 				const in_projects = obj.in_projects.map((item: {project: string, permissions: string[]}): InProject => {
 					const permissions = item.permissions.map((x) => (stringToAdminPermission(x)))
 					if (permissions === undefined) {
-						throw new Error(`${obj?.in_permissions} is not a valid AdminPermission`);
+						throw new OldapErrorInvalidValue(`${obj?.in_permissions} is not a valid AdminPermission`);
 					}
 					return {
 						project: new Iri(item.project),
@@ -94,7 +94,7 @@ export class User {
 				user.hasPermissions = obj.has_permissions.map((x: string) => (new Iri(x)));
 			}
 			else {
-				throw new Error(`${obj.has_permissions} is not a valid permission`);
+				throw new OldapErrorInvalidValue(`${obj.has_permissions} is not a valid permission`);
 			}
 		}
 		return user;
